@@ -8,22 +8,23 @@ using System.Threading.Tasks;
 
 namespace QuizGame.Bus
 {
-    public enum QuizType
+    public enum QuizOptionType
     {
         TrueOrFalse,
-        MultipleChoice,
+        Numeric,
+        Alphabetic
     }
 
     public struct Quiz
     {
-        private QuizType type;
+        private QuizOptionType type;
         
         private string question;
         private int answerIndex;
 
         private string[] choices; 
 
-        public Quiz(QuizType type, string question, string[] choices, int answerIndex)
+        public Quiz(QuizOptionType type, string question, string[] choices, int answerIndex)
         {
             this.type = type;
             this.question = question;
@@ -34,7 +35,6 @@ namespace QuizGame.Bus
         public void Answer(ref int counter)
         {
             string input = string.Empty;
-            char   inputCharacter;
             char[] indexCharacters = GetIndexCharacters();
 
             if(answerIndex > choices.Length - 1)
@@ -51,26 +51,14 @@ namespace QuizGame.Bus
             while (true)
             {
                 Console.Write("Entrer une réponse valide: ");
-                input = Console.ReadLine();
+                input = Console.ReadLine().ToUpper();
 
-                if(input.Length != 1)
+                if (input.Length == 1 && IsValidAnswer(input[0]))
                 {
-                    Console.WriteLine("\nCette réponse n'est pas valide!\n");
-                }
-                else
-                {
-                    input = input.ToUpper();
-                    inputCharacter = input[0];
-
-                    if (IsValidAnswer(indexCharacters, inputCharacter))
-                    {
                         break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("\nCette réponse n'est pas valide!\n");
-                    }
                 }
+
+                Console.WriteLine("\nCette réponse n'est pas valide!\n");
             }
 
             Console.WriteLine($"\nLa bonne réponse était ({indexCharacters[answerIndex].ToString().ToUpper()})");
@@ -91,7 +79,42 @@ namespace QuizGame.Bus
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        public string GetState()
+        private bool IsValidAnswer(char[] indexCharacters, char inputCharacter)
+        {
+            for (int i = 0; i < choices.Length; i++)
+            {
+                if(inputCharacter == indexCharacters[i])
+                {
+                    return true;
+                }
+
+                if (i == indexCharacters.Length - 1)
+                {
+                    break;
+                }
+            }
+
+            return false;
+        }
+
+        private char[] GetIndexCharacters() 
+        {
+            switch (type)
+            {
+                case QuizOptionType.TrueOrFalse:
+                    return new char[] { 'V', 'F' }
+
+                case QuizOptionType.Numeric:
+                    return new char[] { '1', '2', '3', '4', '5' };
+
+                case QuizOptionType.Alphabetic:
+                    return new char[] { 'A', 'B', 'C', 'D', 'E' };
+            }
+
+            return null;
+        }
+
+        private void GetState()
         {
             string description = $"{this.question}\n\n";
             char[] indexCharacters = GetIndexCharacters();
@@ -110,38 +133,6 @@ namespace QuizGame.Bus
             }
 
             return description;
-        }
-
-        private bool IsValidAnswer(char[] characters , char inputCharacter)
-        {
-            for (int i = 0; i < choices.Length; i++)
-            {
-                if(inputCharacter == characters[i])
-                {
-                    return true;
-                }
-
-                if (i == characters.Length - 1)
-                {
-                    break;
-                }
-            }
-
-            return false;
-        }
-
-        private char[] GetIndexCharacters() 
-        {
-            switch (type)
-            {
-                case QuizType.TrueOrFalse:
-                    return new char[] { '1', '2' };
-
-                case QuizType.MultipleChoice:
-                    return new char[] { 'A', 'B', 'C' };
-            }
-
-            return null;
         }
     }
 }
